@@ -23,11 +23,11 @@
   </head>
   <body ng-app="starter">
 
-    <ion-pane>
+    <ion-pane ng-controller="AuthCtrl">
       <ion-header-bar class="bar-stable">
-        <h1 class="title">Ionic Blank Starter</h1>
+        <h1 class="title">Status: {{status_text}}</h1>
       </ion-header-bar>
-      <ion-content ng-controller="AuthCtrl">
+      <ion-content>
 	    <button class="button button-assertive" on-release="cookieReq();">
 	      Get a cookie
 	    </button>

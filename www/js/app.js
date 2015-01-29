@@ -3,6 +3,9 @@
 // Google auth
 var google_secrets = {"web":{"auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","client_email":"330729095383-52sipta7q9em9k4ssheubuad9obgffvf@developer.gserviceaccount.com","redirect_uris":["http://localhost/login","https://nodejs-nma83.rhcloud.com/login"],"client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/330729095383-52sipta7q9em9k4ssheubuad9obgffvf@developer.gserviceaccount.com","client_id":"330729095383-52sipta7q9em9k4ssheubuad9obgffvf.apps.googleusercontent.com","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs"}};
 
+var device_ready = false;
+var google_access_token = null;
+
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
@@ -19,6 +22,8 @@ angular
             if(window.StatusBar) {
                 StatusBar.styleDefault();
             }
+
+            device_ready = true;
         });
     })
     .config(['$httpProvider', function($httpProvider) {
@@ -30,8 +35,11 @@ angular
         var server_url = google_secrets.web.redirect_uris[0];
         var cookie = null;
         server_url = 'http://localhost:8080/login';
+        server_url = 'https://nodejs-nma83.rhcloud.com/login';
+        server_url = 'http://androidemu.net:8080/login';
         console.log(server_url);
         $scope.google_auth_url = '#';
+        $scope.status_text = 'Started up!';
         $scope.cookieReq = function() {
             console.log('Requesting: ', server_url);
             $http.get(server_url)
@@ -46,17 +54,31 @@ angular
                         'state=' + cookie + '&' +
                         'login_hint=sub', '_blank';
                     console.log('Created URL ', $scope.google_auth_url);
+                    $scope.status_text = 'Got cookie!';
                 })
                 .error(function(data, status, headers, config) {
                     console.log('Error getting cookie!', JSON.stringify(status));
+                    $scope.status_text = 'Error getting cookie!';
                 });
         };
 
         $scope.authPopup = function() {
             console.log('Opening auth');
-            var ref = window.open($scope.google_auth_url, '_blank', 'location=no');
-            ref.addEventListener('loadstop', function (event) {
-                console.log('win ' , event);
-            });
+            var ref;
+            if (device_ready && cookie) {
+                ref = window.open($scope.google_auth_url, '_blank', 'location=no');
+                ref.addEventListener('loadstop', function (event) {
+                    ref.executeScript({
+                        code: 'document.getElementById("access_token").innerHTML'
+                    }, function(val) {
+                        ref.close();
+                        google_access_token = val[0];
+                        console.log('access ' + google_access_token);
+                        $scope.status_text = 'Got access!';
+                    });
+                });
+            } else {
+                $scope.status_text = 'Not ready yet!';
+            }
         };
     });
