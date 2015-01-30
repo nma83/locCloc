@@ -44,3 +44,5 @@ gen
 # Emacs backup
 *~
 
+# Node
+.bin
