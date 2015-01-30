@@ -29,11 +29,18 @@ angular
         // Get cookie first
         var server_url = google_secrets.web.redirect_uris[0];
         var cookie = null;
+        // Test server
         server_url = 'http://localhost:8080/login';
+//        server_url = 'https://nodejs-nma83.rhcloud.com/login';
+        
+        // Real server
         console.log(server_url);
         $scope.google_auth_url = '#';
-        $scope.cookieReq = function() {
-            console.log('Requesting: ', server_url);
+        var cookieReq = function() {
+        };
+
+        $scope.authPopup = function() {
+            console.log('Requesting: %s', server_url);
             $http.get(server_url)
                 .success(function(data, status, headers, config) {
                     cookie = data.session_state;
@@ -46,17 +53,14 @@ angular
                         'state=' + cookie + '&' +
                         'login_hint=sub', '_blank';
                     console.log('Created URL ', $scope.google_auth_url);
+                    var ref = window.open($scope.google_auth_url, '_blank', 'location=no');
+                    ref.addEventListener('loadstop', function (event) {
+                        console.log('win ' + event.url);
+                        ref.close();
+                    });
                 })
                 .error(function(data, status, headers, config) {
                     console.log('Error getting cookie!', JSON.stringify(status));
                 });
-        };
-
-        $scope.authPopup = function() {
-            console.log('Opening auth');
-            var ref = window.open($scope.google_auth_url, '_blank', 'location=no');
-            ref.addEventListener('loadstop', function (event) {
-                console.log('win ' , event);
-            });
         };
     });
