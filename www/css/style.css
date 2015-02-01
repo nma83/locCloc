@@ -1,1 +1,21 @@
 /* Empty. Add your own CSS if you like */
+
+/* No borders on list items */
+.item-toggle {
+    border: none;
+}
+
+/* inline image in header */
+.bar-subheader img {
+    float: right;
+    width: 50px;
+    height: 50px;
+    background: #555;
+}
+
+.bar-subheader h4 {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 5%;
+}

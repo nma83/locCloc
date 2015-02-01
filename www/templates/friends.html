@@ -1,0 +1,26 @@
+<ion-view view-title="Friend list">
+  <ion-header-bar class="bar bar-subheader bar-stable">
+    <ion-view>
+    <h4 align="center">{{UserName}}</h4>
+    <img class="title-image" src="{{UserPic}}" />
+    </ion-view>
+  </ion-header-bar>
+  <ion-content has-header="true" has-subheader="true">
+    <p align="center">
+      Select friends to share location with
+    </p>
+    <!-- List of Friend | share -->
+    <ion-list>
+      <ion-item ng-repeat="friend in friends">
+        <ion-toggle ng-model="friend.share" ng-change="listModified()">{{friend.name}}</ion-toggle>
+      </ion-item>
+    </ion-list>
+    <p align="center">
+      {{LoadStatus}}
+    </p>
+  </ion-content>
+  <ion-footer-bar>
+    <button ng-disabled="!friend_list_modified" class="button button-balanced" ng-click="applyShares()">Apply</button>
+    <button class="button button-stable">Cancel</button>
+  </ion-footer-bar>
+</ion-view>
