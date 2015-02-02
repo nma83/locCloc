@@ -16,7 +16,7 @@
   <feature name="StatusBar">
     <param name="ios-package" value="CDVStatusBar" onload="true"/>
   </feature>
-
+  <plugin name="WebIntent" value="com.borismus.webintent.WebIntent" />
   <platform name="android">
     <icon src="icons/android/mdpi/ic_launcher.png" width="48" height="48" />
     <icon src="icons/android/hdpi/ic_launcher.png" width="72" height="72" />

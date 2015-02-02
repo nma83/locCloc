@@ -96,16 +96,47 @@ angular.module('loccloc.controllers', ['ionic.utils'])
     })
 
 // Show friend location
-    .controller('ShowCtrl', function($scope, $stateParams, $localstorage, geoLocation) {
+    .controller('ShowCtrl', function($scope, $stateParams, $localstorage, $http, geoLocation) {
         // Get full profile from storage
         var google_profile = $localstorage.getObject('google_profile');
-        
-        // Set name in header
-        $scope.UserName = google_profile.user_profile['displayName'];
-        $scope.UserPic = google_profile.user_profile.image.url;
+        var loc_save_done = false;
+        var loggedin = google_profile.hasOwnProperty('user_profile');
 
-        var loc = geoLocation.getGeolocation();
-        console.log('got loc ' + JSON.stringify(loc));
+        if (loggedin) {
+            // Set name in header
+            $scope.UserName = google_profile.user_profile['displayName'];
+            $scope.UserPic = google_profile.user_profile.image.url;
+
+            $scope.storeLoc = function(id, loc) {
+                var loc_server = server_url + '/loc';
+                var state = $localstorage.get('session');
+                
+                // Send to server
+                console.log('storing to ' + loc_server);
+                return $http.put(loc_server, JSON.stringify(loc),
+                                 { params: { n: google_profile.user_profile['id'],
+                                             s: state } });
+            };
+            
+            geoLocation.setCallback(function(nloc) {
+                var prevLoc = geoLocation.getGeolocation();
+                $scope.CurrentLoc = JSON.stringify(nloc);
+                $scope.$apply();
+                // Check if required to store
+                if (!prevLoc.hasOwnProperty('latitude') || !loc_save_done ||
+                    geoLocation.canStore(prevLoc, nloc)) {
+                    $scope.storeLoc(google_profile.user_profile['id'], prevLoc || nloc)
+                        .success(function(data, status, headers, config) {
+                            console.log('loc saved');
+                            loc_save_done = true;
+                        })
+                        .error(function(data, status, headers, config) {
+                            console.log('loc save failed');
+                            loc_save_done = false;
+                        });
+                }
+            });
+        }
     })
 
 // Friends screen

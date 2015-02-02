@@ -8,7 +8,7 @@ var device_ready = false;
 // angular.module is a global place for creating, registering and retrieving Angular modules
 angular
     .module('loccloc', ['ionic', 'loccloc.controllers'])
-    .run(function($ionicPlatform, $cordovaGeolocation, geoLocation) {
+    .run(function($ionicPlatform, geoLocation, $ionicPopup) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
@@ -21,28 +21,68 @@ angular
             }
 
             // Geolocation
-            $cordovaGeolocation
-                .getCurrentPosition()
-                .then(function (position) {
-                    geoLocation.setGeolocation(position.coords.latitude, position.coords.longitude)
-                }, function (err) {
-                    geoLocation.setGeolocation(37.38, -122.09)
-                });
-
-            // begin a watch
             var options = {
-                frequency: 1000,
                 timeout: 3000,
                 enableHighAccuracy: false
             };
-
-            var watch = $cordovaGeolocation.watchPosition(options);
-            watch.promise.then(function () { /* Not  used */
-            }, function (err) {
-                geoLocation.setGeolocation(37.38, -122.09)
-            }, function (position) {
+            var watch;
+            geoLocation.clearLocation();
+            var geoSucces = function (position) {
+                console.log('current pos ' + JSON.stringify(position));
                 geoLocation.setGeolocation(position.coords.latitude, position.coords.longitude)
-            });
+            };
+            var geoError = function (err) {
+                console.log('loc error!' + err.message);
+                // Error dialog
+                var confirmPopup = $ionicPopup.confirm({
+                    title: 'Location error',
+                    template: 'Cannot retrieve current location. Please check if location is enabled in Settings.',
+                    buttons: [{
+                        text: 'Cancel',
+                        type: 'button-default',
+                        onTap: function(e) {
+                            return false;
+                        }
+                    }, {
+                        text: 'Settings',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            return true;
+                        }
+                    }]
+                });
+                confirmPopup.then(function(res) {
+                    var enableLoc = function() {
+                        confirmPopup.close();
+                        navigator.geolocation.clearWatch(watch);
+                        watch = navigator.geolocation.watchPosition(geoSucces, geoError,
+                                                                    options);
+                        geoLocation.setWatch(watch);
+                    };
+                    
+                    if (res) {
+                        window.plugins.webintent.startActivity({
+                            action: 'android.settings.LOCATION_SOURCE_SETTINGS'
+                        }, enableLoc, function() {
+                            // Try just settings
+                            window.plugins.webintent.startActivity({
+                                action: 'android.settings.SETTINGS'
+                            }, enableLoc, function() {
+                                console.log("Failed to open Android Intent");
+                            })
+                        });
+                    } else {
+                        console.log('You are not sure');
+                    }
+                });
+            };
+
+            console.log('setting up geolocation');
+//            navigator.geolocation.getCurrentPosition(geoSucces, geoError, options);
+
+            watch = navigator.geolocation.watchPosition(geoSucces, geoError,
+                                                            options);
+            geoLocation.setWatch(watch);
 
             device_ready = true;
         });
