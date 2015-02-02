@@ -96,7 +96,29 @@ angular.module('loccloc.controllers', ['ionic.utils'])
     })
 
 // Show friend location
-    .controller('ShowCtrl', function($scope, $stateParams) {
+    .controller('ShowCtrl', function($scope, $stateParams, $localstorage) {
+        // Get full profile from storage
+        var google_profile = $localstorage.getObject('google_profile');
+        
+        // Set name in header
+        $scope.UserName = google_profile.user_profile['displayName'];
+        $scope.UserPic = google_profile.user_profile.image.url;
+
+        geolocationSuccess = function(position) {
+            $scope.CurrentLoc = JSON.stringify(position);
+        }
+
+        geolocationError = function(error) {
+            $scope.CurrentLoc = 'error ' + error.message;
+        }
+        
+        // Geo location setup
+        console.log('setting up loc');
+        navigator.geolocation.getCurrentPosition(geolocationSuccess,
+                                                 geolocationError);
+        var watchId = navigator.geolocation.watchPosition(geolocationSuccess,
+                                                          geolocationError);
+//                                                              geolocationOptions);
     })
 
 // Friends screen

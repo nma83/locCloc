@@ -1,5 +1,15 @@
 <ion-view view-title="Show">
-  <ion-content>
+  <ion-header-bar class="bar bar-subheader bar-stable">
+    <ion-view>
+      <h4 align="center">{{UserName}}</h4>
+      <img class="title-image" src="{{UserPic}}" />
+    </ion-view>
+  </ion-header-bar>
+
+  <ion-content has-header="true" has-subheader="true">
     <h1>Now showing!!!</h1>
+    <p align="center">
+      {{CurrentLoc}}
+    </p>
   </ion-content>
 </ion-view>
