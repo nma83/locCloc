@@ -8,7 +8,7 @@ var device_ready = false;
 // angular.module is a global place for creating, registering and retrieving Angular modules
 angular
     .module('loccloc', ['ionic', 'loccloc.controllers'])
-    .run(function($ionicPlatform) {
+    .run(function($ionicPlatform, $cordovaGeolocation, geoLocation) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
@@ -19,6 +19,30 @@ angular
             if(window.StatusBar) {
                 StatusBar.styleDefault();
             }
+
+            // Geolocation
+            $cordovaGeolocation
+                .getCurrentPosition()
+                .then(function (position) {
+                    geoLocation.setGeolocation(position.coords.latitude, position.coords.longitude)
+                }, function (err) {
+                    geoLocation.setGeolocation(37.38, -122.09)
+                });
+
+            // begin a watch
+            var options = {
+                frequency: 1000,
+                timeout: 3000,
+                enableHighAccuracy: false
+            };
+
+            var watch = $cordovaGeolocation.watchPosition(options);
+            watch.promise.then(function () { /* Not  used */
+            }, function (err) {
+                geoLocation.setGeolocation(37.38, -122.09)
+            }, function (position) {
+                geoLocation.setGeolocation(position.coords.latitude, position.coords.longitude)
+            });
 
             device_ready = true;
         });

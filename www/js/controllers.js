@@ -96,7 +96,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
     })
 
 // Show friend location
-    .controller('ShowCtrl', function($scope, $stateParams, $localstorage) {
+    .controller('ShowCtrl', function($scope, $stateParams, $localstorage, geoLocation) {
         // Get full profile from storage
         var google_profile = $localstorage.getObject('google_profile');
         
@@ -104,21 +104,8 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         $scope.UserName = google_profile.user_profile['displayName'];
         $scope.UserPic = google_profile.user_profile.image.url;
 
-        geolocationSuccess = function(position) {
-            $scope.CurrentLoc = JSON.stringify(position);
-        }
-
-        geolocationError = function(error) {
-            $scope.CurrentLoc = 'error ' + error.message;
-        }
-        
-        // Geo location setup
-        console.log('setting up loc');
-        navigator.geolocation.getCurrentPosition(geolocationSuccess,
-                                                 geolocationError);
-        var watchId = navigator.geolocation.watchPosition(geolocationSuccess,
-                                                          geolocationError);
-//                                                              geolocationOptions);
+        var loc = geoLocation.getGeolocation();
+        console.log('got loc ' + JSON.stringify(loc));
     })
 
 // Friends screen
@@ -145,17 +132,9 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         } else {
             // Show the loading overlay and text
             $scope.loading = $ionicLoading.show({
-                // The text to display in the loading indicator
                 content: 'Loading friends',
-                // The animation to use
                 animation: 'fade-in',
-                // Will a dark overlay or backdrop cover the entire view
-                showBackdrop: true,
-                // The maximum width of the loading indicator
-                // Text will be wrapped if longer than maxWidth
-                maxWidth: 200,
-                // The delay in showing the indicator
-                showDelay: 100
+                showBackdrop: true
             });
             
             $scope.fetchFriends(google_profile.user_profile['id'])
