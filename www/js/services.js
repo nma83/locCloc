@@ -1,7 +1,26 @@
 // Helper services
 
 angular.module('ionic.utils', [])
-
+// Auth
+    .factory('authInterceptor', function ($rootScope, $q, $window) {
+        return {
+            request: function (config) {
+                config.headers = config.headers || {};
+                if ($window.sessionStorage.token) {
+                    config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token;
+                }
+                return config;
+            },
+            response: function (response) {
+                if (response.status === 401) {
+                    // handle the case where the user is not authenticated
+                    // TBD
+                }
+                return response || $q.when(response);
+            }
+        };
+    })
+// local storage
     .factory('$localstorage', ['$window', function($window) {
         return {
             set: function(key, value) {
@@ -18,7 +37,7 @@ angular.module('ionic.utils', [])
             }
         }
     }])
-
+// geo location
     .factory('geoLocation', ['$localstorage', function ($localstorage) {
         var callback = null;
 
@@ -75,4 +94,36 @@ angular.module('ionic.utils', [])
                     return false;
             }
         }
+    }])
+// socket.io
+    .factory('socket', ['$rootScope', function($rootScope) {
+        var callback = null;
+        var socket;
+
+        return {
+            connect: function(url, token, id) {
+                // connect to url with auth token and user id
+                socket = io.connect(url, {
+                    'query': 'token=' + token + '&id=' + id
+                });
+                
+                callback = cb;
+                socket.on('connect', function() {
+                    console.log('socket connected');
+                }).on('disconnect', function() {
+                    console.log('socket disconnected');
+                });
+            },
+            on: function(event, cb) {
+                // Apply changes to root scope
+                socket.on(event, function(data) {
+                    $rootScope.$apply(function() {
+                        cb.call(socket, data);
+                    });
+                });
+            },
+            emit: function(event, args) {
+                socket.emit(event, args);
+            }
+        };
     }]);

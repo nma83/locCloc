@@ -8,7 +8,15 @@ var device_ready = false;
 // angular.module is a global place for creating, registering and retrieving Angular modules
 angular
     .module('loccloc', ['ionic', 'loccloc.controllers'])
-    .run(function($ionicPlatform, geoLocation, $ionicPopup) {
+    .constant('config', {
+        server_url: 'http://androidemu.net:8080',
+        real_server_url: 'https://nodejs-nma83.rhcloud.com'
+    })
+    .value('appState', {
+        loggedin: false,
+        geoWatch: ''
+    })
+    .run(function($ionicPlatform, geoLocation, $ionicPopup, $window, $localstorage, appState) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
@@ -20,6 +28,12 @@ angular
                 StatusBar.styleDefault();
             }
 
+            // Session token
+            $window.sessionStorage.token = $localstorage.get('token', null);
+            console.log('init token ' + $window.sessionStorage.token);
+            var loggedin = $localstorage.get('loggedin', false);
+            appState.loggedin = loggedin;
+            
             // Geolocation
             var options = {
                 timeout: 3000,
@@ -28,7 +42,7 @@ angular
             var watch;
             geoLocation.clearLocation();
             var geoSucces = function (position) {
-                console.log('current pos ' + JSON.stringify(position));
+                //console.log('current pos ' + JSON.stringify(position));
                 geoLocation.setGeolocation(position.coords.latitude, position.coords.longitude)
             };
             var geoError = function (err) {
@@ -57,7 +71,7 @@ angular
                         navigator.geolocation.clearWatch(watch);
                         watch = navigator.geolocation.watchPosition(geoSucces, geoError,
                                                                     options);
-                        geoLocation.setWatch(watch);
+                        appState.geoWatch = watch;
                     };
                     
                     if (res) {
@@ -80,10 +94,12 @@ angular
             console.log('setting up geolocation');
 //            navigator.geolocation.getCurrentPosition(geoSucces, geoError, options);
 
-            watch = navigator.geolocation.watchPosition(geoSucces, geoError,
+            if (loggedin) {
+                watch = navigator.geolocation.watchPosition(geoSucces, geoError,
                                                             options);
-            geoLocation.setWatch(watch);
-
+                appState.geoWatch = watch;
+            }
+            
             device_ready = true;
         });
     })
@@ -91,13 +107,24 @@ angular
         $httpProvider, $urlRouterProvider, $stateProvider) {
         $httpProvider.defaults.useXDomain = true;
         delete $httpProvider.defaults.headers.common['X-Requested-With'];
-
+        // auth
+        $httpProvider.interceptors.push('authInterceptor');
+        // States
         $stateProvider
             .state('app', {
                 url: '/app',
                 abstract: true,
                 templateUrl: 'templates/menu.html',
                 controller: 'AuthCtrl'
+            })
+            .state('app.splash', {
+                url: '/splash',
+                views: {
+                    'menuContent': {
+                        templateUrl: 'templates/splash.html',
+                        controller: 'SplashCtrl'
+                    }
+                }
             })
             .state('app.show', {
                 url: '/show',
@@ -119,5 +146,5 @@ angular
             });
 
         // Splash screen
-        $urlRouterProvider.otherwise('/app/show');
+        $urlRouterProvider.otherwise('/app/splash');
     }])
