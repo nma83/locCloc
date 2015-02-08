@@ -6,7 +6,7 @@ var google_secrets = {"web":{"auth_uri":"https://accounts.google.com/o/oauth2/au
 var device_ready = false;
 
 angular.module('loccloc.controllers', ['ionic.utils'])
-    .controller('AuthCtrl', function($scope, config, $ionicModal, $http, $localstorage, $state, $window, appState) {
+    .controller('AuthCtrl', function($scope, config, $ionicModal, $http, $localstorage, $state, $window, appState, $ionicHistory) {
         // Get cookie first
         var cookie = null;
         // Test server
@@ -48,6 +48,12 @@ angular.module('loccloc.controllers', ['ionic.utils'])
                 $scope.LoginLogout = 'Login';
                 $scope.loggedin = false;
                 appState.loggedin = false;
+                // Go to splash
+                $ionicHistory.nextViewOptions({
+                    disableAnimate: true,
+                    disableBack: true
+                });
+                $state.go('app.splash', {}, {reload: true});
             }
         };
 
@@ -106,13 +112,15 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         // Get full profile from storage
         var google_profile = $localstorage.getObject('google_profile');
         var loc_save_done = false;
-//        var loggedin = $localstorage.get('loggedin', false);
+        var loggedin = $localstorage.get('loggedin', false) &&
+            google_profile.hasOwnProperty('user_profile');
 
-//        if (loggedin) {
-        // Set name in header
-        $scope.UserName = google_profile.user_profile['displayName'];
-        $scope.UserPic = google_profile.user_profile.image.url;
-
+        if (loggedin) {
+            // Set name in header
+            $scope.UserName = google_profile.user_profile['displayName'];
+            $scope.UserPic = google_profile.user_profile.image.url;
+        }
+        
         // Send location to server
         $scope.storeLoc = function(id, loc) {
             var loc_server = config.server_url + '/loc';
@@ -128,33 +136,35 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         // Store location of others
         $scope.updateLoc = function(data) {
             console.log('updating for ' + data.userid);
-            var lat = data.location.latitude,
-                long = data.location.longitude;
+            var lat = data.latitude,
+                long = data.longitude;
         };
-        
-        geoLocation.setCallback(function(nloc) {
-            var prevLoc = geoLocation.getGeolocation();
-            $scope.CurrentLoc = JSON.stringify(nloc);
-            $scope.$apply();
-            // Check if required to store
-            if (!prevLoc.hasOwnProperty('latitude') || !loc_save_done ||
-                geoLocation.canStore(prevLoc, nloc)) {
-                $scope.storeLoc(google_profile.user_profile['id'], nloc)
-                    .success(function(data, status, headers, config) {
-                        console.log('loc saved');
-                        loc_save_done = true;
-                    })
-                    .error(function(data, status, headers, config) {
-                        console.log('loc save failed');
-                        loc_save_done = false;
-                    });
-            }
-        });
 
-        // Receive locations from server
-        socket.connect(config.server_url, $localstorage.get('token', ''),
-                       google_profile.user_profile['id']);
-        socket.on('location', $scope.updateLoc);
+        if (loggedin) {
+            geoLocation.setCallback(function(nloc) {
+                var prevLoc = geoLocation.getGeolocation();
+                $scope.CurrentLoc = JSON.stringify(nloc);
+                $scope.$apply();
+                // Check if required to store
+                if (!prevLoc.hasOwnProperty('latitude') || !loc_save_done ||
+                    geoLocation.canStore(prevLoc, nloc)) {
+                    $scope.storeLoc(google_profile.user_profile['id'], nloc)
+                        .success(function(data, status, headers, config) {
+                            console.log('loc saved');
+                            loc_save_done = true;
+                        })
+                        .error(function(data, status, headers, config) {
+                            console.log('loc save failed');
+                            loc_save_done = false;
+                        });
+                }
+            });
+
+            // Receive locations from server
+            socket.connect(config.server_url, $localstorage.get('token', ''),
+                           google_profile.user_profile['id']);
+            socket.on('location', $scope.updateLoc);
+        }
     })
 
 // Friends screen

@@ -19,3 +19,10 @@
     white-space: nowrap;
     padding-left: 5%;
 }
+
+/* Icon */
+#locClocIcon {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

@@ -97,7 +97,6 @@ angular.module('ionic.utils', [])
     }])
 // socket.io
     .factory('socket', ['$rootScope', function($rootScope) {
-        var callback = null;
         var socket;
 
         return {
@@ -107,7 +106,6 @@ angular.module('ionic.utils', [])
                     'query': 'token=' + token + '&id=' + id
                 });
                 
-                callback = cb;
                 socket.on('connect', function() {
                     console.log('socket connected');
                 }).on('disconnect', function() {
