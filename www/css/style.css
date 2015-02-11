@@ -20,9 +20,10 @@
     padding-left: 5%;
 }
 
-/* Icon */
-#locClocIcon {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+#inline-appicon {
+    padding-top: 10%;
+    padding-bottom: 10%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

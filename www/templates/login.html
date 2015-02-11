@@ -5,25 +5,10 @@
       <button class="button button-clear" ng-click="closeLogin()">Close</button>
     </div>
   </ion-header-bar>
-  <ion-content>
-    <!--
-    <ul>
-      <li class="item">
-        <ion-content>
-          Serious privacy agreement :|
-        </ion-content>
-      </li>
-      <li class="item item-checkbox">
-        <label class="checkbox">
-          <input type="checkbox" ng-model="iagree_checked" />
-        </label>
-        I agree
-      </li>
-    </ul>
-    -->
+  <ion-content padding="true">
     Serious privacy agreement :|
     <ion-checkbox ng-model="iagree_checked">I Agree</ion-checkbox>
-	<button class="button button-assertive button-block" ng-disabled="!iagree_checked"
+	<button class="button button-assertive button-block ion-social-googleplus" ng-disabled="!iagree_checked"
             ng-click="authPopup();">
 	  Google+ login
 	</button>

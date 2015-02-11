@@ -19,12 +19,15 @@
     <ion-content>
       <ion-list>
         <ion-item nav-clear menu-close ng-click="loginlogout()">
+          <i class="icon ion-log-in"></i>
           {{LoginLogout}}
         </ion-item>
         <ion-item nav-clear menu-close href="#/app/show" ng-if="loggedin">
+          <i class="icon ion-map"></i>
           Show
         </ion-item>
         <ion-item nav-clear menu-close href="#/app/friends" ng-if="loggedin">
+          <i class="icon ion-person-stalker"></i>
           Friends
         </ion-item>
       </ion-list>

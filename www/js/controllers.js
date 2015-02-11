@@ -164,6 +164,10 @@ angular.module('loccloc.controllers', ['ionic.utils'])
             socket.connect(config.server_url, $localstorage.get('token', ''),
                            google_profile.user_profile['id']);
             socket.on('location', $scope.updateLoc);
+
+            $scope.$on('$destroy', function() {
+                console.log('going bye..');
+            };
         }
     })
 
@@ -199,7 +203,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
             $scope.fetchFriends(google_profile.user_profile['id'])
                 .success(function(data, status, headers, config) {
                     var friends_obj = JSON.parse(data.friends);
-                    console.log('friends: ' + JSON.stringify(data));
+                    //console.log('friends: ' + JSON.stringify(data));
                     friend_list.friends = [];
 
                     for (var fid in friends_obj) {
