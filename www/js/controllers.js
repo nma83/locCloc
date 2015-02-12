@@ -82,7 +82,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
                         console.log('returned is ' + typeof(google_profile));
                         // Profile is a string
                         $localstorage.set('google_profile', google_profile);
-                        $localstorage.set('loggedin', false);
+                        $localstorage.set('loggedin', true);
                         $scope.LoginLogout = 'Logout';
                         $scope.loggedin = true;
                         appState.loggedin = true;
@@ -90,6 +90,12 @@ angular.module('loccloc.controllers', ['ionic.utils'])
                         $window.sessionStorage.token = JSON.parse(google_profile).token;
                         console.log('storing token ' + $window.sessionStorage.token);
                         $localstorage.set('token', $window.sessionStorage.token);
+
+                        $ionicHistory.nextViewOptions({
+                            disableAnimate: true,
+                            disableBack: true
+                        });
+
                         $state.go('app.show', {}, {reload: true});
                     });
 
@@ -114,11 +120,15 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         var loc_save_done = false;
         var loggedin = $localstorage.get('loggedin', false) &&
             google_profile.hasOwnProperty('user_profile');
+        var friend_list = $localstorage.getObject('friend_list');
 
         if (loggedin) {
             // Set name in header
             $scope.UserName = google_profile.user_profile['displayName'];
             $scope.UserPic = google_profile.user_profile.image.url;
+            $scope.friends = friend_list.friends;
+            $scope.sel_friend = friend_list.friends[0];
+            $scope.FromPlace = 'Home'; $scope.ToPlace = 'Work';
         }
         
         // Send location to server
@@ -135,9 +145,9 @@ angular.module('loccloc.controllers', ['ionic.utils'])
 
         // Store location of others
         $scope.updateLoc = function(data) {
-            console.log('updating for ' + data.userid);
             var lat = data.latitude,
-                long = data.longitude;
+                lng = data.longitude;
+            console.log('updating for ' + data.userid + '=' + lat + ':' + lng);
         };
 
         if (loggedin) {
@@ -167,7 +177,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
 
             $scope.$on('$destroy', function() {
                 console.log('going bye..');
-            };
+            });
         }
     })
 
