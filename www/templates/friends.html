@@ -1,14 +1,13 @@
 <ion-view view-title="Friend list">
   <ion-header-bar class="bar bar-subheader bar-stable">
     <ion-view>
-    <h4 align="center">{{UserName}}</h4>
+    <h4 align="center">
+      Select friends to share location with
+    </h4>
     <img class="title-image" src="{{UserPic}}" />
     </ion-view>
   </ion-header-bar>
   <ion-content has-header="true" has-subheader="true">
-    <p align="center">
-      Select friends to share location with
-    </p>
     <!-- List of Friend | share -->
     <ion-list>
       <ion-item ng-repeat="friend in friends">

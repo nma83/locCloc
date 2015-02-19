@@ -48,6 +48,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
                 $scope.LoginLogout = 'Login';
                 $scope.loggedin = false;
                 appState.loggedin = false;
+
                 // Go to splash
                 $ionicHistory.nextViewOptions({
                     disableAnimate: true,
@@ -66,6 +67,7 @@ angular.module('loccloc.controllers', ['ionic.utils'])
                 'scope=https://www.googleapis.com/auth/plus.login&' +
                 'redirect_uri=' + loc_server + '&' +
                 'state=' + cookie + '&' +
+                'approval_prompt=force&' +
                 'login_hint=sub', '_blank';
             console.log('Created URL ' + google_auth_url);
 
@@ -106,29 +108,51 @@ angular.module('loccloc.controllers', ['ionic.utils'])
     })
 // Splash screen
     .controller('SplashCtrl', function($scope, $state, $localstorage, $ionicHistory) {
+        $scope.loggedin = true;
         $ionicHistory.nextViewOptions({
             disableAnimate: true,
             disableBack: true
         });
         if ($localstorage.get('loggedin', false))
             $state.go('app.show', {}, {reload: true});
+        else
+            $scope.loggedin = false;
     })
-// Show friend location
+// Show friend location and startup reporting
     .controller('ShowCtrl', function($scope, config, $stateParams, $localstorage, $http, geoLocation, socket, appState) {
         // Get full profile from storage
         var google_profile = $localstorage.getObject('google_profile');
         var loc_save_done = false;
         var loggedin = $localstorage.get('loggedin', false) &&
             google_profile.hasOwnProperty('user_profile');
+        // Assume friend list has been loaded
         var friend_list = $localstorage.getObject('friend_list');
+        var recvd_locs = { };
 
+        $scope.loggedin = loggedin;
+        $scope.places = ['Home', 'Work'];
+        
         if (loggedin) {
+            var none = '- None -';
             // Set name in header
             $scope.UserName = google_profile.user_profile['displayName'];
             $scope.UserPic = google_profile.user_profile.image.url;
-            $scope.friends = friend_list.friends;
-            $scope.sel_friend = friend_list.friends[0];
-            $scope.FromPlace = 'Home'; $scope.ToPlace = 'Work';
+            if (friend_list.hasOwnProperty('friends')) {
+                $scope.friends = friend_list.friends.filter(function(elem, index, arr) {
+                    return elem.share;
+                });
+                if ($scope.friends.length > 0)
+                    $scope.sel_friend = $scope.friends[0];
+                else
+                    $scope.sel_friend = [none];
+            } else {
+                $scope.friends = [none];
+            }
+            $scope.FriendLoc = '';
+            $scope.from_place = 'Home'; $scope.to_place = 'Work';
+        } else {
+            console.log('nothing to show, storage corrupt');
+            $scope.UserName = 'Error! Please logout and try again';
         }
         
         // Send location to server
@@ -147,7 +171,20 @@ angular.module('loccloc.controllers', ['ionic.utils'])
         $scope.updateLoc = function(data) {
             var lat = data.latitude,
                 lng = data.longitude;
+            var lat_str, lng_str;
             console.log('updating for ' + data.userid + '=' + lat + ':' + lng);
+            recvd_locs[data.userid] = [lat, lng];
+            
+            if (lat < 0)
+                lat_str = 'S';
+            else
+                lat_str = 'N';
+            if (lng < 0)
+                lng_str = 'W';
+            else
+                lng_str = 'E';
+
+            $scope.FriendLoc = '' + lat + lat_str + ', ' + lng + lng_str;
         };
 
         if (loggedin) {

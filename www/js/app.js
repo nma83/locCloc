@@ -9,8 +9,8 @@ var device_ready = false;
 angular
     .module('loccloc', ['ionic', 'loccloc.controllers'])
     .constant('config', {
-        server_url: 'http://androidemu.net:8080',
-        real_server_url: 'https://nodejs-nma83.rhcloud.com'
+        //server_url: 'http://androidemu.net:8080',
+        server_url: 'https://nodejs-nma83.rhcloud.com'
     })
     .value('appState', {
         loggedin: false,
@@ -99,7 +99,15 @@ angular
                                                             options);
                 appState.geoWatch = watch;
             }
-            
+
+            // Run in background
+            cordova.plugins.backgroundMode.setDefaults({
+                title: 'locCloc running',
+                text: 'Reporting current location'
+            });
+            // Enable background mode
+            cordova.plugins.backgroundMode.enable();
+
             device_ready = true;
         });
     })
